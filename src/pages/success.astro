@@ -1,0 +1,57 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const params = Astro.url.searchParams;
+const paymentId = params.get('payment_id') ?? params.get('collection_id') ?? params.get('preference_id');
+---
+
+<Layout>
+  <main class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-white relative overflow-hidden">
+    <!-- Glow decorativo -->
+    <div class="absolute -top-24 -left-24 w-72 h-72 bg-emerald-200 rounded-full blur-3xl opacity-40"></div>
+    <div class="absolute -bottom-32 -right-24 w-96 h-96 bg-emerald-100 rounded-full blur-3xl opacity-40"></div>
+
+    <section class="relative w-full max-w-xl">
+      <div class="rounded-3xl border border-gray-200/70 bg-white/80 backdrop-blur-xl shadow-xl p-10 text-center">
+        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
+          <!-- Check icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+
+        <h1 class="text-2xl font-semibold tracking-tight text-gray-900">Pago completado</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          ¡Gracias por tu compra! Hemos registrado tu orden y te enviamos los detalles por correo.
+        </p>
+
+        {paymentId && (
+          <p class="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-medium text-emerald-700">
+            <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+            ID de pago: {paymentId}
+          </p>
+        )}
+
+        <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <a href="/" class="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-gray-800 active:bg-gray-900">
+            Volver al inicio
+          </a>
+          <a href="/#modelo" class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-900 transition-all hover:bg-gray-100">
+            Seguir explorando
+          </a>
+        </div>
+      </div>
+
+      <!-- Línea sutil animada -->
+      <div class="pointer-events-none absolute -bottom-8 left-1/2 h-px w-56 -translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-60"></div>
+    </section>
+  </main>
+
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    section > div { animation: float 6s ease-in-out infinite; }
+  </style>
+</Layout>

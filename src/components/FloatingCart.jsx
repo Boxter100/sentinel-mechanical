@@ -46,47 +46,46 @@ const FloatingCart = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Función para iniciar el proceso de pago con Mercado Pago
-  const handleCheckout = async () => {
-    try {
-      setIsLoading(true);
+  // Función para iniciar el proceso de pago con Stripe
+  const handleCheckout = async () => { 
+    try { 
+      setIsLoading(true); 
   
-      const items = Object.values($cartItems).map(item => ({
-        id: item.id,
-        title: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        currency_id: 'MXN'
-      }));
+      // Preparar los items del carrito 
+      const items = $cartItems; 
   
-      const response = await fetch('/api/preference', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ items }),
-      });
+      // Llamar a la API de Stripe 
+      const response = await fetch('/api/checkout', { 
+        method: 'POST', 
+        headers: { 
+          'Content-Type': 'application/json', 
+        }, 
+        body: JSON.stringify({ items }), 
+      }); 
   
-      const data = await response.json();
+      const data = await response.json(); 
   
-      if (data.initPoint) {
-        localStorage.setItem('limfarCart', JSON.stringify({
-          items: $cartItems,
-          total: $cartTotal,
-          count: $cartCount,
-          timestamp: new Date().toISOString()
-        }));
+      if (data.url) { 
+        // Guardar info del carrito en localStorage antes de redirigir 
+        localStorage.setItem('limfarCart', JSON.stringify({ 
+          items: $cartItems, 
+          total: $cartTotal, 
+          count: $cartCount, 
+          timestamp: new Date().toISOString(), 
+          sessionId: data.sessionId 
+        })); 
   
-        window.location.href = data.initPoint;
-      } else {
-        throw new Error('No se pudo crear la preferencia de pago');
-      }
-    } catch (error) {
-      console.error('Error al procesar el pago:', error);
-      alert('Hubo un error al procesar el pago. Por favor, intenta nuevamente.');
-    } finally {
-      setIsLoading(false);
-    }
+        // Redirigir a Stripe Checkout 
+        window.location.href = data.url; 
+      } else { 
+        throw new Error(data.error || 'No se pudo crear la sesión de pago'); 
+      } 
+    } catch (error) { 
+      console.error('Error al procesar el pago:', error); 
+      alert('Hubo un error al procesar el pago. Por favor, intenta nuevamente.'); 
+    } finally { 
+      setIsLoading(false); 
+    } 
   };
   
   // Efecto para animar el contador cuando cambia
