@@ -9,6 +9,8 @@ import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
+  output: 'server', // ← Necesario para API routes serverless
+  
   integrations: [react()],
 
   vite: {
