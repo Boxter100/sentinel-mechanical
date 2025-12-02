@@ -33,30 +33,43 @@ export async function POST({ request }) {
       );
     }
 
+    // Determinar una base URL HTTPS para imágenes y callbacks
+    const reqOrigin = request.headers.get('origin');
+    const urlOrigin = new URL(request.url).origin;
+    const envOrigin = import.meta.env.PUBLIC_SITE_URL;
+    const baseUrl = [envOrigin, reqOrigin, urlOrigin, 'https://mechanical.sentinellab.tech']
+      .find(u => typeof u === 'string' && u.startsWith('https://')) || 'https://mechanical.sentinellab.tech';
+
+    // Helper para generar URLs absolutas a partir de rutas relativas
+    const toAbsoluteUrl = (maybeRelative) => {
+      if (!maybeRelative) return undefined;
+      if (typeof maybeRelative !== 'string') return undefined;
+      if (/^https?:\/\//i.test(maybeRelative)) return maybeRelative; // ya es absoluta
+      const path = maybeRelative.startsWith('/') ? maybeRelative : `/${maybeRelative}`;
+      return `${baseUrl}${path}`;
+    };
+
     // Convertir los items del carrito al formato que Stripe necesita
     const lineItems = Object.values(items).map(item => ({
       price_data: {
-        currency: 'mxn', // Moneda en pesos mexicanos
+        currency: 'mxn',
         product_data: {
           name: item.name,
-          images: item.image ? [item.image] : [], // Stripe acepta URLs de imágenes
+          images: item.image ? [toAbsoluteUrl(item.image)].filter(Boolean) : [],
           description: item.description || `Producto: ${item.name}`,
         },
-        unit_amount: Math.round(item.price * 100), // Stripe maneja centavos
+        unit_amount: Math.round(Number(item.price) * 100),
       },
-      quantity: item.quantity,
+      quantity: Number(item.quantity) || 1,
     }));
-
-    // Obtener el origin del request para las URLs de redirección
-    const origin = request.headers.get('origin') || 'https://mechanical.sentinellab.tech/';
 
     // Crear la sesión de Checkout en Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'], // Métodos de pago aceptados
       line_items: lineItems,
       mode: 'payment', // 'payment' para pagos únicos
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/canceled`,
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/failure`,
       
       // Configuración adicional
       billing_address_collection: 'auto',
